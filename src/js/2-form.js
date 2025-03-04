@@ -1,49 +1,40 @@
+const form = document.querySelector('.feedback-form');
+const STORAGE_KEY = 'feedback-form-state';
 
-const STORAGE_KEY = 'feedback-msg';
-
-const refs = {
-  form: document.querySelector('.feedback-form'),
+const formData = {
+    email: '',
+    message: '',
 };
 
-// Оголошуємо змінну для збереження стану форми
-let formData = loadFromLS(STORAGE_KEY) || { email: '', message: '' };
+document.addEventListener('DOMContentLoaded', () => {
+    const savedData = localStorage.getItem(STORAGE_KEY);
+    if (savedData) {
+        const parsedData = JSON.parse(savedData);
+        formData.email = parsedData.email || '';
+        formData.message = parsedData.message || '';
 
-// Заповнюємо поля форми при завантаженні сторінки
-initPage();
-
-refs.form.addEventListener('input', e => {
-  // Оновлюємо лише відповідне поле в об'єкті formData
-  formData[e.target.name] = e.target.value.trim();
-  saveToLS(STORAGE_KEY, formData);
+        form.elements.email.value = formData.email;
+        form.elements.message.value = formData.message;
+    }
 });
 
-refs.form.addEventListener('submit', e => {
-  e.preventDefault();
-
-  // Якщо хоча б одне поле порожнє, виводимо повідомлення і не відправляємо форму
-  if (!formData.email || !formData.message) {
-    return alert('Fill please all fields');
-  }
-
-  console.log(formData);
-
-  // Очищаємо сховище, форму та об'єкт formData
-  localStorage.removeItem(STORAGE_KEY);
-  refs.form.reset();
-  formData = { email: '', message: '' };
+form.addEventListener('input', (event) => {
+    formData[event.target.name] = event.target.value.trim();
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(formData));
 });
 
-function initPage() {
-  refs.form.elements.email.value = formData.email || '';
-  refs.form.elements.message.value = formData.message || '';
-}
+form.addEventListener('submit', (event) => {
+    event.preventDefault();
 
-function saveToLS(key, value) {
-  localStorage.setItem(key, JSON.stringify(value));
-}
+    if (!formData.email || !formData.message) {
+        alert('Fill please all fields');
+        return;
+    }
 
-function loadFromLS(key) {
-  const data = localStorage.getItem(key);
-  return data ? JSON.parse(data) : null;
-}
+    console.log('Submitted data:', formData);
 
+    localStorage.removeItem(STORAGE_KEY);
+    form.reset();
+    formData.email = '';
+    formData.message = '';
+});
